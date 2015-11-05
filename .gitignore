@@ -1,0 +1,268 @@
+
+<?php error_reporting(~E_ALL);?>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="../boot.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+<!--
+- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style type="text/css">
+
+body
+{  
+
+  margin: auto 0px ;
+  background-color: #003366;
+}	
+p{
+  float:right;
+}
+.container
+{
+ 
+ max-height: 600px;
+ 
+	max-width: 400px;
+}	
+	
+	.form-group
+	{
+		margin-top: 40px;
+	}
+  .image
+  {
+   
+    margin-left: 45px;px;
+  }
+  h1
+  {
+    border-bottom:1px solid white;
+    color:white;
+  }
+.page-header 
+{ 
+  
+  margin:0px;
+  padding:0px;
+}
+ .image
+ {
+
+  color:white;
+ }
+ .page-footer
+{
+  color: white;
+  border-top:  1px solid white;
+  margin-top: 0px;
+  text-align: center;
+  margin-bottom: 0px;
+}
+.panel .panel-primary {
+  background-color: blue;
+}
+
+</style>
+</head>
+ <?php 
+    if (isset($_POST['submit'])) {
+
+      $dbhost="localhost";
+      $dbuser="root";
+      $dbpassword=""; 
+      $dbcon = mysql_connect($dbhost, $dbuser, $dbpassword);
+      if(! $dbcon)
+      {
+        die('could not connect' .mysql_errno());
+      }
+      //echo "connected successfully";
+
+      $db = mysql_select_db('hari');
+
+      $name =$_POST['name'];
+      $email=$_POST['email'];
+      $password=$_POST['password'];
+      $number=$_POST['number'];
+   
+      $cnt_email = 0;
+      if(!empty($email))
+      {
+        $email_query = mysql_query("SELECT * FROM ph WHERE email = '{$email}'");
+
+        $cnt_email = mysql_num_rows($email_query);
+      }
+        if($cnt_email == 0)
+
+        {
+
+          $image_name=$_FILES['images']['name'];
+          $image_type=$_FILES['images']['type'];
+          $image_size=$_FILES['images']['size'];
+          $image_tmp_name=$_FILES['images']['tmp_name'];
+          
+         if($image_name=='')
+         {
+          echo "<script>alert ('please select the image')</script>";
+         }
+         else
+         {
+          move_uploaded_file($image_tmp_name,"images/$image_name");
+          echo "<div  = 'suc_msg'>image upload success fully</div>";
+          }
+
+
+        $error= array();
+
+        if(empty($name) || empty($email) || empty($password) || empty($number))
+        {
+
+          if(empty($name))
+          {
+            $error['name'] ="enter the name";
+          }
+
+          if (strlen($name) <6){
+            $error['name1']= "enter the atleast 6 characters";
+          }
+          if(empty($email))
+          {
+            $error['email'] = "enter email address"; 
+          }
+         else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+          $error['email'] = "Invalid email format"; 
+          
+          }
+
+          /*      eamil validation /
+          if (empty($email)) {
+ 
+
+            $reg = '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/';
+
+          if (preg_match($reg, $email)) {
+
+          echo $email .\"Email Id is accepted.\";
+
+        } else {
+
+      echo $email . \"Invalid Email ID.\";
+
+          }
+        }
+        if(empty($email))
+          {
+            $error['email'] ="enter the email";
+          }*/
+
+          if(empty($password))
+          {
+            $error['password'] ="enter the password";
+          }
+
+          if(strlen($password) <6 )
+
+          {
+            $error['password1']="enter the atleast 6 characters";
+          }
+          if(empty($number))
+          {
+            $error['number'] ="enter the number";
+          }
+
+          
+           // if(strlen($number) < 5 )
+          
+          if(strlen($number) <5 || strlen($number)>10){
+            $error['number1']=" minmum numbers the 6 charcters maximum number is 10 ";
+          }
+          /*elseif(strlen($number) >12)
+          {
+            $error['number1']=" maximum numbers is 12 charcters";
+          }*/
+          }
+             
+          else{
+                
+              $query = mysql_query("INSERT INTO ph(name, email, password,num,image) values ( '{$name}', '{$email}', '{$password}','{$number}','{$image_name}') ");
+              echo "<script>alert ('signup successfully')</script>";
+                if (! $query) 
+                  die(mysql_errno());
+                mysql_close( $dbcon);
+          }
+        }
+        else{
+          $error['email'] ="<span style = 'color:red'>email id is already exists</span>";
+          
+        }
+          
+      
+  }
+
+   ?>
+
+<body>
+<div ="page-header">
+  <h1>APP NAME </h1>
+</div>
+<form class="form-horizontal" action="signup.php" enctype="multipart/form-data" method="post">
+<div class="form-group">
+    <label class="image"  for="exampleInputFile">Image upload</label>
+    <input  class="image"   type="file" name="images" value="<?php if(isset($image_name))  echo "$image_name"; ?>" id="exampleInputFile">
+   </div>
+<div class="container">
+<div class="panel panel-primary">
+  <div class="form-group">
+    <label for="inputEmail3" class="col-sm-4 control-label">Name</label>
+    <div class="col-sm-6">
+      <input type="name" class="form-control"  name="name" id="inputEmail3" placeholder="Name" value = "<?php if(isset($name)) echo $name;?>">
+       <?php if (isset($error['name']))  {echo $error['name'];}?> </p>
+
+        <P> <?php if(isset($error['name1'])) { echo $error['name1'];} ?> </P>
+        
+          </div>
+       
+  </div>
+  <div class="form-group">
+    <label for="inputEmail3" class="col-sm-4 control-label">Email</label>
+    <div class="col-sm-6">
+      <input type="email" class="form-control" name="email" id="inputEmail3" placeholder="Email" value = "<?php if(isset($email)) echo $email;?>">
+     <?php   if (isset($error['email'])) {echo $error['email'];}?>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputEmail3" class="col-sm-4 control-label">Password</label>
+    <div class="col-sm-6">
+      <input type="password" class="form-control"  name="password" id="inputEmail3" placeholder="Password" value="<?php if(isset($password)) echo "$password";?>">
+     <?php   if (isset($error['password'])) {echo $error['password'];}?>
+     <p><?php if(isset($error['password1'])) {echo $error['password1'];}?></p>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inputPassword3" class="col-sm-4 control-label">Mobile</label>
+    <div class="col-sm-6">
+      <input type="name" class="form-control" name="number" id="inputPassword3" placeholder="Mobile" value="<?php if(isset($number)) echo "$number";?>">
+     <?php   if (isset($error['number'])) {echo $error['number'];}?>
+     <p><?php  if(isset($error['number1'])) {echo $error['number1'];} ?></p>
+    </div>
+  </div>
+  <div class="form-group form-actions">
+   <div class="col-md-9 col-md-offset-3">
+   <button type="submit" name="submit" class="btn btn-sm btn-primary"><i class="fa fa-user"></i>Signup</button>
+   <button type="reset" class="btn btn-sm btn-warning"><i class="fa fa-repeat"></i> Cancel</button>
+</div>
+</div>
+</div>
+</div>
+</form>
+<div class="page-footer"><h4> Footer</h4></div>
+</body>
+</html>
