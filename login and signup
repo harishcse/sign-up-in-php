@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+		<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+
+
+</head>
+
+
+<?php
+//sign in
+if (isset($_POST['submit'])) {
+	
+	if($_POST['emai'] !="") {
+		$emai=$_POST['emai'];
+		$is_email_empty = "NO";
+	}else
+	{
+		$error['emai']="<span style='color:red'> you cant leave empty </span>";
+		# code...
+		$is_email_empty ="YES";
+
+	}
+	if ($_POST['pass'] != "") {
+		$pass=$_POST['pass'];
+		# code..
+		$is_pass_empty ="NO";
+	}
+	else{
+		$error['pass']="<span style='color:red'> you cant leave empty </span>";
+		$is_pass_empty ="YES";
+	}
+	// echo "<br/>email:".$is_email_empty;
+	// echo "<br/>passwrd:".$is_pass_empty;
+// exit;
+	if($is_email_empty == "NO" && $is_pass_empty == "NO")
+	{
+	$dbhost='localhost';
+	$dbname='root';
+	$dbpassword='';
+	$conn =mysql_connect($dbhost,$dbname,$dbpassword);
+	if (! $conn) {
+		die('could not connect'. mysql_errno());
+
+	}
+	echo "connected succesfully"; 
+
+
+
+	//validation 
+	//this array will store all error messafes
+	$db = mysql_select_db('hari');
+	$result = "SELECT * FROM sri WHERE email ='{$emai}' AND password ='{$pass}'";
+	$res=mysql_query($result) ; 
+    $row = mysql_fetch_assoc($res);
+   $num_rows= mysql_num_rows($res);
+
+
+if($num_rows == 0){
+
+$error['emai']="<span style='color:red'> you cant leave empty </span>";
+	//echo "<span style = 'color:red'> email id not exists database</span>";
+	
+	# code...
+}
+else
+{
+
+session_start();
+$_SESSION["user_id"] =$row['id'];
+$_SESSION["user_name"] = $row['name'];
+$_SESSION["user_image"] =$row['image'];
+ //echo "<pre>";print_r($_SESSION["user_name"] );exit;
+header("Location: test.php");
+}
+}
+//signup code 
+}
+if (isset($_POST['sub'])) {
+	$name = $_POST['name'];
+	$email =$_POST['email'];
+    $password =$_POST['password'];
+	$mo =$_POST['mobi'];
+
+
+	//image upload code 
+	$target_path ="img/";  
+	$target_path = $target_path.basename( $_FILES['fileToUpload']['name']);   
+  
+	if(move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $target_path)) {  
+    echo "File uploaded successfully!";  
+} 	else{  
+
+    echo  "<span style= 'color:red'>please select the image</span>";
+}   
+	$dhost='localhost';
+	$dname='root';
+	$dbpassword ='';
+	
+	$con = mysql_connect($dhost,$dname,$dbpassword);
+	
+	if (!$con) {
+
+		die('could not connect'. mysql_errno());
+	}
+	echo "connected succesfully ";
+  
+
+// VALIDATION 
+
+ $valid= array();
+ 
+if (empty($name) || empty($email) || empty($password) || empty($mo)) {
+
+
+	$valid['name']="<span style = 'color:red'>You can't leave this empty</span>";
+	
+}
+if (strlen($name)<6) {
+	$valid['name1']="enter atleast 6 characters ";
+}
+
+ if(empty($email))
+        {$valid['email']="<span style = 'color:red'>You can't leave this empty</span>";
+	
+           // $valid['email'] = "enter email address"; 
+          }
+         else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {      
+          $valid['email'] = "Invalid email format"; 
+         
+         }
+         if (empty($password)) {
+         	 $valid['password']="<span style = 'color:red'>You can't leave this empty</span>";
+       // $valid['password']= "You can't leave this empty";
+         }
+
+         	if (empty($mo)) {
+				$valid['mobi']="<span style = 'color:red'>You can't leave this empty</span>";
+         		//$valid['mobi'] ="You can't leave this empty";
+         		}	
+
+         		$db = mysql_select_db('hari');
+         		$sql = mysql_query("SELECT * FROM sri WHERE email ='{$email}'");
+         		if (mysql_num_rows($sql)>0) {
+         	echo "<span style = 'color:red' > email id already exists</span>";
+         		}
+         		else{
+$query = mysql_query("INSERT INTO sri (name,email,password,mobileno,image)  VALUES ('{$name}','{$email}','{$password}','{$mo}','{$target_path}')");
+ if(! $query)
+ die(mysql_error());
+
+ mysql_close($con);
+ }
+         	}
+       ?>
+<body>
+
+<div class="container">
+
+
+
+<form action="" method="POST"  enctype="multipart/form-data">
+
+  <div class="form-group">
+
+
+ 
+    <label  for="exampleInputEmail3">Email address</label>
+    <input type="email" name="emai" class="form-control" id="exampleInputEmail3" placeholder="Email">
+   <p> <?php if (isset($error['emai'])) {
+   	echo $error['emai'];
+   	# code...
+   } ?> </p>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword3">Password</label>
+    <input type="password" name="pass" class="form-control" id="exampleInputPassword3" placeholder="Password">
+   <p><?php if (isset($error['pass'])) {
+   	echo $error['pass'];
+   		
+   } ?></p>
+  </div>
+
+  <button type="submit" name="submit"  class="btn btn-default">Sign in</button>
+  		<br>
+  		<br>
+<h2>
+sign up
+</h2>
+<input type="file" name="fileToUpload" id="fileToUpload">
+    
+  <div class="form-group" >
+    <label for="exampleInputEmail1">Name</label>
+    <input type="text" name="name"class="form-control" id="exampleInputEmail1" placeholder="name">
+    <p> <?php if (isset($valid['name']))  {echo $valid['name'];}?> </p>
+       <P> <?php if(isset($valid['name1'])) { echo $valid['name1'];} ?> </P>
+  </div>
+  <div class="form-group" >
+    <label for="exampleInputEmail1">Email address</label>
+    <input type="email" name="email" class="form-control" id="exampleInputEmail1" placeholder="Email">
+
+    <?php   if (isset($valid['email'])) {echo $valid['email'];}?>
+  </div>
+  <div class="form-group" >
+    <label for="exampleInputEmail1">password</label>
+    <input type="password" name="password" class="form-control" id="exampleInputEmail1" placeholder="password">
+     <?php   if (isset($valid['password'])) {echo $valid['password'];}?>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">phone no</label>
+    <input type="name" name="mobi" class="form-control" id="exampleInputPassword1" placeholder="mobileno">
+    <?php   if (isset($valid['mobi'])) {echo $valid['mobi'];}?>
+  </div>
+  
+   <button type="submit"  name="sub" class="btn btn-default">Submit</button>
+</form>
+
+</div>
+</body>
+</html>
